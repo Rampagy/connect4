@@ -55,7 +55,7 @@ def PlayGame():
 
 
 
-for _ in range(2):
+for _ in range(100):
     player_winner, c4game_log = PlayGame()
 
     # do back propagation if a player won

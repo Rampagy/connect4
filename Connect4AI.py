@@ -5,7 +5,7 @@ import tensorflow as tf
 
 def ComputerPlayer(board_state):
     # use a trained model if possible
-    if len(tf.train.latest_checkpoint('Connect4_model/')) != 0:
+    if tf.train.latest_checkpoint('Connect4_model/') != None:
         # Create the Estimator
         connect4_classifier = tf.estimator.Estimator(model_fn=c4c.cnn_model_fn, model_dir="Connect4_model/")
 
@@ -34,7 +34,6 @@ def ComputerPlayer(board_state):
 
     # else use random rows
     else:
-        print("rando bot")
         move = np.random.randint(board_state.shape[1])
         while (board_state[0, move] != 0):
             move = np.random.randint(board_state.shape[1])
