@@ -55,7 +55,8 @@ def PlayGame():
 
 
 
-for _ in range(100):
+for game_num in range(200):
+    print(game_num)
     player_winner, c4game_log = PlayGame()
 
     # do back propagation if a player won
@@ -66,19 +67,25 @@ for _ in range(100):
 
         # go through each board state and train off of it
         for c4_game_state, truth_label in c4game_log:
-            truth_label = np.array(truth_label, dtype=np.float32, ndmin=1)
-            c4_game_state = np.array(c4_game_state, dtype=np.float32, ndmin=2)
+            for i in range(2):
+                if i == 1:
+                    c4_game_state = np.fliplr(np.array(c4_game_state, dtype=np.float32, ndmin=2))
+                else:
+                    c4_game_state = np.array(c4_game_state, dtype=np.float32, ndmin=2)
 
-            # Train the model
-            train_input_fn = tf.estimator.inputs.numpy_input_fn(
-                x={"x": c4_game_state},
-                y=truth_label,
-                batch_size=1,
-                num_epochs=None,
-                shuffle=True)
-            connect4_classifier.train(
-                input_fn=train_input_fn,
-                steps=1)
+
+                truth_label = np.array(truth_label, dtype=np.float32, ndmin=1)
+
+                # Train the model
+                train_input_fn = tf.estimator.inputs.numpy_input_fn(
+                    x={"x": c4_game_state},
+                    y=truth_label,
+                    batch_size=1,
+                    num_epochs=None,
+                    shuffle=True)
+                connect4_classifier.train(
+                    input_fn=train_input_fn,
+                    steps=1)
 
 
 

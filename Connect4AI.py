@@ -25,14 +25,14 @@ def ComputerPlayer(board_state):
         max_prob = -1
         col_count = 0
         for prob in position_probabilities:
-            col_count += 1
             if (prob > max_prob) and (board_state[0, col_count] == 0):
                 max_prob = prob
                 move = col_count
+            col_count += 1
 
         return move
 
-    # else use random rows
+    # else pick randomly
     else:
         move = np.random.randint(board_state.shape[1])
         while (board_state[0, move] != 0):
