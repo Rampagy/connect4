@@ -1,7 +1,13 @@
 import connect4 as c4
 import HumanPlayer as hp
 import numpy as np
+import Connect4AI as c4a
+import tensorflow as tf
+import Connect4Classifier as c4c
 
+# Call this function to play a game of connect4
+# Returns a game log of the winning players moves
+# the winning players pieces are always represented as a 1
 def PlayGame():
     # create instance of the game
     game = c4.connect4()
@@ -16,13 +22,17 @@ def PlayGame():
 
         while not (valid_input):
             if players_turn == 0:
-                # player 0's pieves are represented as -1, so multiply by -1
-                # so that from every players perspective their pieces are 1
-                move = hp.HumanAI(np.copy(game.board)*-1)
+                # player 0's pieces are represented as -1, so multiply by -1
+                # so that from every players perspective their pieces are +1
+                move = c4a.ComputerPlayer(np.copy(game.board)*-1)
+                #move = hp.HumanAI(np.copy(game.board)*-1)
             else:
-                move = hp.HumanAI(np.copy(game.board))
+                # player 1's pieces are represented as 11, so multiply by 1
+                # so that from every players perspective their pieces are +1
+                move = c4a.ComputerPlayer(np.copy(game.board))
+                #move = hp.HumanAI(np.copy(game.board))
 
-            valid_input, game_complete = game.AddMove(move)
+            valid_input, player_won, game_complete = game.AddMove(move)
 
         game_log.append((players_turn, board_state, move))
 
@@ -39,8 +49,53 @@ def PlayGame():
 
     for player, game_state, move in game_log:
         if player == game.players_turn:
-            winning_game_log.append((game_state*mul_factor, move))
+            winning_game_log.append((game_state.flatten()*mul_factor, move))
 
-    return winning_game_log
+    return (player_won, winning_game_log)
 
-print(PlayGame())
+
+
+for _ in range(2):
+    player_winner, c4game_log = PlayGame()
+
+    # do back propagation if a player won
+    if player_winner:
+        # Create the Estimator
+        connect4_classifier = tf.estimator.Estimator(
+            model_fn=c4c.cnn_model_fn, model_dir="Connect4_model/")
+
+        # go through each board state and train off of it
+        for c4_game_state, truth_label in c4game_log:
+            truth_label = np.array(truth_label, dtype=np.float32, ndmin=1)
+            c4_game_state = np.array(c4_game_state, dtype=np.float32, ndmin=2)
+
+            # Train the model
+            train_input_fn = tf.estimator.inputs.numpy_input_fn(
+                x={"x": c4_game_state},
+                y=truth_label,
+                batch_size=1,
+                num_epochs=None,
+                shuffle=True)
+            connect4_classifier.train(
+                input_fn=train_input_fn,
+                steps=1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def ace_ventura():
+    pass

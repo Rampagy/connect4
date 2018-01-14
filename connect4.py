@@ -3,20 +3,18 @@ import numpy as np
 # define a class for the game
 class connect4:
     def __init__ (self):
-        self.width = 5
-        self.height = 5
+        self.width = 10
+        self.height = 10
 
         self.board = np.zeros((self.height, self.width), dtype=np.int)
         self.players_turn = np.random.randint(2)
-
-        self.game_complete = False
 
     def AddMove(self, column):
         # if the move is invalid
         if (column < 0) or (column > (self.height-1)):
             # return that the move was not added to the board
-            # and there is no winner
-            return (False, None)
+            # and there is no winner and the game is not complete
+            return (False, False, False)
 
         # search from the bottom to the top of the board for an open spot
         for row in range(self.height-1, -1, -1):
@@ -29,19 +27,23 @@ class connect4:
                 # check if a player won on the most recent move
                 if self.checkWin():
                     # return that the move was added to the board
-                    # return that a player won
-                    return (True, True)
+                    # return that a player won and the game is complete
+                    return (True, True, True)
+                elif self.checkTie():
+                    # return that the move was added to the board
+                    # return that no player won and the game is complete
+                    return (True, False, True)
 
                 # switch the players_turn
                 self.players_turn ^= 1
 
                 # return move was added to board
-                # return that no player won
-                return (True, None)
+                # return that no player won and the game is not complete
+                return (True, False, False)
 
         # return that the move was not added to the board
-        # return that no player has won
-        return (False, None)
+        # return that no player has won and the game is not complete
+        return (False, False, False)
 
     def checkWin(self):
         boardHeight = self.height
@@ -74,3 +76,34 @@ class connect4:
                     return True
 
         return False
+
+
+    def checkTie(self):
+        col_full = 0
+
+        # check tie
+        for x in range(self.width):
+            if self.board[0, x] != 0:
+                col_full += 1
+
+        if col_full >= self.width:
+            return True
+        else:
+            return False
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def dr_doolittle():
+    pass
