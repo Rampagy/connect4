@@ -22,13 +22,27 @@ def ComputerPlayer(board_state):
         position_probabilities = next(eval_results)['probabilities']
 
         # find the highest probability that is also valid
-        max_prob = -1
-        col_count = 0
-        for prob in position_probabilities:
-            if (prob > max_prob) and (board_state[0, col_count] == 0):
-                max_prob = prob
-                move = col_count
-            col_count += 1
+        move = -1
+
+        while (move == -1):
+            prev_prob = 0
+            col_count = 0
+
+            # pick a random number between 0 and 1
+            uniform_num = np.random.uniform()
+
+            # check to see which 'window' the random number is in
+            # if the value is in an invalid window (aka invalid move)
+            # pick a new random number and try again until a valid move is chosen
+            for column_prob in position_probabilities:
+                if ((prev_prob <= uniform_num) and \
+                    (uniform_num <= prev_prob + column_prob) and \
+                    (board_state[0, col_count] == 0)):
+                        move = col_count
+                        break
+
+                prev_prob +=column_prob
+                col_count += 1
 
         return move
 
