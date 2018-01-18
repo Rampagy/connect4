@@ -7,7 +7,7 @@ from __future__ import print_function
 import numpy as np
 import tensorflow as tf
 
-tf.logging.set_verbosity(tf.logging.INFO)
+tf.logging.set_verbosity(tf.logging.ERROR)
 
 
 def cnn_model_fn(features, labels, mode):
@@ -41,34 +41,16 @@ def cnn_model_fn(features, labels, mode):
       padding="same",
       activation=tf.nn.relu)
 
-  # Pooling Layer #1
-  # Second max pooling layer with a 2x2 filter and stride of 2
-  # Input Tensor Shape: [batch_size, 10, 10, 64]
-  # Output Tensor Shape: [batch_size, 5, 5, 64]
-  pool1 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2)
-
-  # Convolutional Layer #3
-  # Computes 64 features using a 2x2 filter.
-  # Padding is added to preserve width and height.
-  # Input Tensor Shape: [batch_size, 10, 10, 64]
-  # Output Tensor Shape: [batch_size, 10, 10, 128]
-  conv3 = tf.layers.conv2d(
-      inputs=pool1,
-      filters=128,
-      kernel_size=[2, 2],
-      padding="same",
-      activation=tf.nn.relu)
-
   # Flatten tensor into a batch of vectors
-  # Input Tensor Shape: [batch_size, 5, 5, 128]
-  # Output Tensor Shape: [batch_size, 5 * 5 * 128]
-  conv3_flat = tf.reshape(conv3, [-1, 5 * 5 * 128])
+  # Input Tensor Shape: [batch_size, 10, 10, 64]
+  # Output Tensor Shape: [batch_size, 10 * 10 * 64]
+  conv2_flat = tf.reshape(conv2, [-1, 10 * 10 * 64])
 
   # Dense Layer
   # Densely connected layer with 1024 neurons
-  # Input Tensor Shape: [batch_size, 7 * 7 * 64]
+  # Input Tensor Shape: [batch_size, 10 * 10 * 64]
   # Output Tensor Shape: [batch_size, 1024]
-  dense = tf.layers.dense(inputs=conv3_flat, units=1024, activation=tf.nn.relu)
+  dense = tf.layers.dense(inputs=conv2_flat, units=1024, activation=tf.nn.relu)
 
   # Add dropout operation; 0.6 probability that element will be kept
   dropout = tf.layers.dropout(
@@ -108,50 +90,3 @@ def cnn_model_fn(features, labels, mode):
           labels=labels, predictions=predictions["classes"])}
   return tf.estimator.EstimatorSpec(
       mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
-
-
-def main(unused_argv):
-  """
-  # Load training and eval data
-  mnist = tf.contrib.learn.datasets.load_dataset("mnist")
-  train_data = mnist.train.images  # Returns np.array
-  train_labels = np.asarray(mnist.train.labels, dtype=np.int32)
-  eval_data = mnist.test.images  # Returns np.array
-  eval_labels = np.asarray(mnist.test.labels, dtype=np.int32)
-  """
-
-
-  # Create the Estimator
-  connect4_classifier = tf.estimator.Estimator(
-      model_fn=cnn_model_fn, model_dir="/Connect4_model")
-
-  # Set up logging for predictions
-  # Log the values in the "Softmax" tensor with label "probabilities"
-  tensors_to_log = {"probabilities": "softmax_tensor"}
-  logging_hook = tf.train.LoggingTensorHook(
-      tensors=tensors_to_log, every_n_iter=50)
-
-  # Train the model
-  train_input_fn = tf.estimator.inputs.numpy_input_fn(
-      x={"x": train_data},
-      y=train_labels,
-      batch_size=1,
-      num_epochs=None,
-      shuffle=True)
-  connect4_classifier.train(
-      input_fn=train_input_fn,
-      steps=1,
-      hooks=[logging_hook])
-
-  # Evaluate the model and print results
-  eval_input_fn = tf.estimator.inputs.numpy_input_fn(
-      x={"x": eval_data},
-      y=eval_labels,
-      num_epochs=1,
-      shuffle=False)
-  eval_results = connect4_classifier.evaluate(input_fn=eval_input_fn)
-  print(eval_results)
-
-
-if __name__ == "__main__":
-  tf.app.run()
