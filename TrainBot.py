@@ -56,7 +56,7 @@ def TrainBot():
 
 
 
-for game_num in range(10):
+for game_num in range(1):
     player_winner, c4game_log = TrainBot()
     print(game_num)
 
@@ -74,16 +74,16 @@ for game_num in range(10):
 
         # go through each board state and add it to the appropriate arrays
         for i in range(2*len(c4game_log)):
-            game = c4game_log[math.floor(i/2)][0]
+            game = np.reshape(c4game_log[math.floor(i/2)][0], (10, 10))
             truth = c4game_log[math.floor(i/2)][1]
 
             # if odd add the flipped game state
             if i%2 == 1:
-                game_states[i, :] = np.fliplr(np.array(game, ndmin=2))
+                game_states[i, :] = np.fliplr(game).flatten()
                 truth_labels[i] = 9-truth
             # else (if even) add to the original game state
             else:
-                game_states[i, :] = np.array(game, ndmin=2)
+                game_states[i, :] = game.flatten()
                 truth_labels[i] = truth
 
         # Train the model
