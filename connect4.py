@@ -9,7 +9,29 @@ class connect4:
         self.board = np.zeros((self.height, self.width), dtype=np.int)
         self.players_turn = np.random.randint(2)
 
+        self.previous_players_moves = np.array([-1, -2])
+
+
     def AddMove(self, column):
+        # Track who has been trying to make moves
+        # if the same person has made 3 invalid moves in a row
+        # they lose the game
+        self.previous_players_moves = np.roll(self.previous_players_moves, 1)
+        self.previous_players_moves[0] = self.players_turn
+
+        player_same_turn_count = 0
+        for i in range(len(self.previous_players_moves)-1):
+            if self.previous_players_moves[i] == self.previous_players_moves[i+1]:
+                player_same_turn_count += 1
+
+        if player_same_turn_count == len(self.previous_players_moves)-1:
+            # flip winning players turn
+            self.players_turn ^= 1
+            # return that the move was added to the board
+            # return that a player won and the game is complete
+            return (True, True, True)
+
+
         # if the move is invalid
         if (column < 0) or (column > (self.height-1)):
             # return that the move was not added to the board
@@ -22,7 +44,7 @@ class connect4:
             # if an open spot is found
             if self.board[row, column] == 0:
                 # add the move to the board
-                self.board[row, column] = 1 if (self.players_turn == 1) else -1
+                self.board[row, column] = 1 if (self.players_turn == 0) else 2
 
                 # check if a player won on the most recent move
                 if self.checkWin():
@@ -48,7 +70,7 @@ class connect4:
     def checkWin(self):
         boardHeight = self.height
         boardWidth = self.width
-        tile = 1 if (self.players_turn == 1) else -1
+        tile = 1 if (self.players_turn == 0) else 2
         board = np.transpose(self.board)
 
         # check horizontal spaces
