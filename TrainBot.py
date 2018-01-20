@@ -23,15 +23,15 @@ def TrainBot():
 
         while not (valid_input):
             if players_turn == 0:
-                # player 0's pieces are represented as -1, so multiply by -1
-                # so that from every players perspective their pieces are +1
-                move = c4a.ComputerPlayer(np.copy(game.board)*-1)
+                # player 0's pieces are represented as 1, so don't do anything
+                # because his pieces are already from his perspective
+                move = c4a.ComputerPlayer(np.copy(game.board))
                 #move = hp.HumanAI(np.copy(game.board)*-1)
             else:
-                # player 1's pieces are represented as 11, so multiply by 1
-                # so that from every players perspective their pieces are +1
-                move = c4a.ComputerPlayer(np.copy(game.board))
-                #move = hp.HumanAI(np.copy(game.board))
+                # player 1's pieces are represented as 2, so flip his pieces
+                # so that from every players perspective their pieces are 1
+                move = c4a.ComputerPlayer(FlipPlayers(np.copy(game.board)))
+                #move = hp.HumanAI(FlipPlayers(np.copy(game.board)))
 
             valid_input, player_won, game_complete = game.AddMove(move)
 
@@ -42,21 +42,42 @@ def TrainBot():
 
     # if the winning player is player 0
     if game.players_turn == 0:
-        # add a multiplication factor of -1 so that the log shows
-        # the winning players moves as +1 no matter the player that won
-        mul_factor = -1
+        # flag that the players values do not need to be flipped
+        flip_player_vals = False
     else:
-        mul_factor = 1
+        # normalize the players persepective such that it is always
+        # player 0 (which is a val of 1 on the board)
+        flip_player_vals = True
 
     for player, game_state, move in game_log:
+
+        if flip_player_vals:
+            game_state = FlipPlayers(np.copy(game_state))
+
         if player == game.players_turn:
-            winning_game_log.append((game_state.flatten()*mul_factor, move))
+            winning_game_log.append((game_state, move))
 
     return (player_won, winning_game_log)
 
 
 
-for game_num in range(1):
+def FlipPlayers(board_state):
+    # normalize the game such that the perspective is
+    # always from player 0 (value of 1)
+    for y in range(board_state.shape[0]):
+        for x in range(board_state.shape[1]):
+            if board_state[y, x] == 1:
+                board_state[y, x] = 2
+            elif board_state[y, x] == 2:
+                board_state[y, x] = 1
+
+    return board_state
+
+
+
+
+
+for game_num in range(20000):
     player_winner, c4game_log = TrainBot()
     print(game_num)
 
@@ -74,7 +95,7 @@ for game_num in range(1):
 
         # go through each board state and add it to the appropriate arrays
         for i in range(2*len(c4game_log)):
-            game = np.reshape(c4game_log[math.floor(i/2)][0], (10, 10))
+            game = c4game_log[math.floor(i/2)][0]
             truth = c4game_log[math.floor(i/2)][1]
 
             # if odd add the flipped game state
@@ -85,6 +106,9 @@ for game_num in range(1):
             else:
                 game_states[i, :] = game.flatten()
                 truth_labels[i] = truth
+
+        #for game_disp, truth_disp in zip(game_states, truth_labels):
+        #    print("{}\n{}\n\n".format(np.reshape(game_disp, (10, 10)), truth_disp))
 
         # Train the model
         train_input_fn = tf.estimator.inputs.numpy_input_fn(
