@@ -25,7 +25,7 @@ def cnn_model_fn(features, labels, mode):
   conv1 = tf.layers.conv2d(
       inputs=input_layer,
       filters=32,
-      kernel_size=[2, 2],
+      kernel_size=[3, 3],
       padding="same",
       activation=tf.nn.relu)
 
@@ -37,20 +37,56 @@ def cnn_model_fn(features, labels, mode):
   conv2 = tf.layers.conv2d(
       inputs=conv1,
       filters=64,
-      kernel_size=[2, 2],
+      kernel_size=[3, 3],
+      padding="same",
+      activation=tf.nn.relu)
+
+  # Convolutional Layer #2
+  # Computes 64 features using a 2x2 filter.
+  # Padding is added to preserve width and height.
+  # Input Tensor Shape: [batch_size, 10, 10, 32]
+  # Output Tensor Shape: [batch_size, 10, 10, 64]
+  conv3 = tf.layers.conv2d(
+      inputs=conv2,
+      filters=96,
+      kernel_size=[3, 3],
+      padding="same",
+      activation=tf.nn.relu)
+
+  # Convolutional Layer #2
+  # Computes 64 features using a 2x2 filter.
+  # Padding is added to preserve width and height.
+  # Input Tensor Shape: [batch_size, 10, 10, 32]
+  # Output Tensor Shape: [batch_size, 10, 10, 64]
+  conv4 = tf.layers.conv2d(
+      inputs=conv3,
+      filters=128,
+      kernel_size=[3, 3],
+      padding="same",
+      activation=tf.nn.relu)
+
+  # Convolutional Layer #2
+  # Computes 64 features using a 2x2 filter.
+  # Padding is added to preserve width and height.
+  # Input Tensor Shape: [batch_size, 10, 10, 32]
+  # Output Tensor Shape: [batch_size, 10, 10, 64]
+  conv5 = tf.layers.conv2d(
+      inputs=conv4,
+      filters=160,
+      kernel_size=[3, 3],
       padding="same",
       activation=tf.nn.relu)
 
   # Flatten tensor into a batch of vectors
   # Input Tensor Shape: [batch_size, 10, 10, 64]
   # Output Tensor Shape: [batch_size, 10 * 10 * 64]
-  conv2_flat = tf.reshape(conv2, [-1, 10 * 10 * 64])
+  conv2_flat = tf.reshape(conv5, [-1, 10 * 10 * 160])
 
   # Dense Layer
   # Densely connected layer with 1024 neurons
   # Input Tensor Shape: [batch_size, 10 * 10 * 64]
   # Output Tensor Shape: [batch_size, 1024]
-  dense = tf.layers.dense(inputs=conv2_flat, units=1024, activation=tf.nn.relu)
+  dense = tf.layers.dense(inputs=conv2_flat, units=2048, activation=tf.nn.relu)
 
   # Add dropout operation; 0.6 probability that element will be kept
   dropout = tf.layers.dropout(
@@ -78,7 +114,7 @@ def cnn_model_fn(features, labels, mode):
 
   # Configure the Training Op (for TRAIN mode)
   if mode == tf.estimator.ModeKeys.TRAIN:
-    optimizer = tf.train.AdamOptimizer(learning_rate=0.001)
+    optimizer = tf.train.AdamOptimizer(learning_rate=0.00001)
     train_op = optimizer.minimize(
         loss=loss,
         global_step=tf.train.get_global_step())
