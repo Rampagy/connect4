@@ -3,13 +3,13 @@ import HumanPlayer as hp
 import numpy as np
 import Connect4AI as c4a
 import tensorflow as tf
-import Connect4Classifier as c4c
 import math
+import time
 
 # Call this function to play a game of connect4
 # Returns a game log of the winning players moves
 # the winning players pieces are always represented as a 1
-def TrainBot():
+def TrainBot(aiBot):
     # create instance of the game
     game = c4.connect4()
     game_complete = False
@@ -25,12 +25,12 @@ def TrainBot():
             if players_turn == 0:
                 # player 0's pieces are represented as 1, so don't do anything
                 # because his pieces are already from his perspective
-                move = c4a.ComputerPlayer(np.copy(game.board))
+                move = aiBot.predict_move(np.copy(game.board))
                 #move = hp.HumanAI(np.copy(game.board)*-1)
             else:
                 # player 1's pieces are represented as 2, so flip his pieces
                 # so that from every players perspective their pieces are 1
-                move = c4a.ComputerPlayer(FlipPlayers(np.copy(game.board)))
+                move = aiBot.predict_move(FlipPlayers(np.copy(game.board)))
                 #move = hp.HumanAI(FlipPlayers(np.copy(game.board)))
 
             valid_input, player_won, game_complete = game.AddMove(move)
@@ -76,10 +76,13 @@ def FlipPlayers(board_state):
 
 
 
+# create AI class
+aiBot = c4a.Connect4Bot()
 
-for game_num in range(20000):
-    player_winner, c4game_log = TrainBot()
-    print(game_num)
+for game_num in range(10):
+    game_time_start = time.process_time()
+    player_winner, c4game_log = TrainBot(aiBot)
+    game_time = time.process_time() - game_time_start
 
     # do back propagation if a player won
     if player_winner:
@@ -88,10 +91,6 @@ for game_num in range(20000):
 
         # init array for labels
         truth_labels = np.zeros(shape=(2*len(c4game_log)), dtype=np.float32)
-
-        # Create the Estimator
-        connect4_classifier = tf.estimator.Estimator(
-            model_fn=c4c.cnn_model_fn, model_dir="Connect4_model/")
 
         # go through each board state and add it to the appropriate arrays
         for i in range(2*len(c4game_log)):
@@ -110,17 +109,11 @@ for game_num in range(20000):
         #for game_disp, truth_disp in zip(game_states, truth_labels):
         #    print("{}\n{}\n\n".format(np.reshape(game_disp, (10, 10)), truth_disp))
 
-        # Train the model
-        train_input_fn = tf.estimator.inputs.numpy_input_fn(
-            x={"x": game_states},
-            y=truth_labels,
-            batch_size=100,
-            num_epochs=None,
-            shuffle=True)
-        connect4_classifier.train(
-            input_fn=train_input_fn,
-            steps=1)
+        train_time_start = time.process_time()
+        aiBot.train_game(game_states, truth_labels)
+        train_time = time.process_time() - train_time_start
 
+        print("{} took {} seconds for the game and {} seconds for the training".format(game_num, game_time, train_time))
 
 
 
