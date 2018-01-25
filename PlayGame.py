@@ -3,13 +3,12 @@ import HumanPlayer as hp
 import numpy as np
 import Connect4AI as c4a
 import tensorflow as tf
-import Connect4Classifier as c4c
 import math
 
 # Call this function to play a game of connect4
 # Returns a game log of the winning players moves
 # the winning players pieces are always represented as a 1
-def PlayGame():
+def PlayGame(aiBot):
     # create instance of the game
     game = c4.connect4()
     game_complete = False
@@ -24,7 +23,7 @@ def PlayGame():
             if players_turn == 0:
                 # player 0's pieces are represented as -1, so multiply by -1
                 # so that from every players perspective their pieces are +1
-                move = c4a.ComputerPlayer(np.copy(game.board))
+                move = aiBot.predict_move(np.copy(game.board))
                 #move = hp.HumanAI(np.copy(game.board)*-1)
             else:
                 # player 1's pieces are represented as 11, so multiply by 1
@@ -49,8 +48,11 @@ def FlipPlayers(board_state):
 
     return board_state
 
+# create AI class
+aiBot = c4a.Connect4Bot()
+
 # play a game against the computer
-PlayGame()
+PlayGame(aiBot)
 
 
 
