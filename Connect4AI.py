@@ -1,4 +1,3 @@
-#import Connect4Classifier as c4c
 import numpy as np
 import tensorflow as tf
 
