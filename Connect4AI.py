@@ -7,21 +7,23 @@ tf.logging.set_verbosity(tf.logging.INFO)
 
 class Connect4Bot():
     def __init__(self):
+        # create current baord state
+        self.current_board_state = np.zeros(shape=(10, 10), dtype=np.float32)
+
         # create the computational graph
         self.c4_estimator = tf.estimator.Estimator(model_fn=cnn_model_fn, model_dir="Connect4_model/")
 
+        # create input function
+        self.pred_input_fn = tf.estimator.inputs.numpy_input_fn(x={"x": self.current_board_state.flatten()}, num_epochs=1, shuffle=False)
 
     def predict_move(self, board_state):
         # use a trained model if possible
         if tf.train.latest_checkpoint('Connect4_model/') != None:
             # reshape the board_state
-            board_state = np.array(board_state, dtype=np.float32, ndmin=2)
-
-            # input the data
-            pred_input_fn = tf.estimator.inputs.numpy_input_fn(x={"x": board_state.flatten()}, num_epochs=1, shuffle=False)
+            self.current_board_state = np.array(board_state, dtype=np.float32, ndmin=2)
 
             # run the prediction
-            eval_results = self.c4_estimator.predict(input_fn=pred_input_fn)
+            eval_results = self.c4_estimator.predict(input_fn=self.pred_input_fn)
 
             # grab the probabilities
             position_probabilities = next(eval_results)['probabilities']
@@ -192,8 +194,6 @@ def cnn_model_fn(features, labels, mode):
           labels=labels, predictions=predictions["classes"])}
   return tf.estimator.EstimatorSpec(
       mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
-
-
 
 
 
