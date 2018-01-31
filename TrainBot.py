@@ -79,7 +79,7 @@ def FlipPlayers(board_state):
 # create AI class
 aiBot = c4a.Connect4Bot()
 
-for game_num in range(10):
+for game_num in range(100000):
     game_time_start = time.process_time()
     player_winner, c4game_log = TrainBot(aiBot)
     game_time = time.process_time() - game_time_start
