@@ -2,7 +2,6 @@ import connect4 as c4
 import HumanPlayer as hp
 import numpy as np
 import Connect4AI as c4a
-import tensorflow as tf
 import math
 
 # Call this function to play a game of connect4
